@@ -8,48 +8,34 @@ import java.sql.Statement;
 
 public class LoginRegistCase {
 	public static boolean loginUser(String name, String pass) {
-		Connection con = null;
-		con = ConnectionDB.getConnection();
-		PreparedStatement ps = null;
-		Statement stmt = null;
-		try {
-			stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from users where nick = '"+name+"' AND pass = '"+pass+"'");
+		
+		
+		
+		try (
+				Connection con = ConnectionDB.getConnection();
+				Statement stmt = con.createStatement();
+				ResultSet rs = stmt.executeQuery("select * from users where nick = '"+name+"' AND pass = '"+pass+"'");
+				PreparedStatement ps = null;
+			){
+			
+			
 			if(rs.next()) {
 				return true;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				if(ps != null) {
-					ps.close();
-				}
-				if(con != null) {
-					con.close();
-				}
-				if(stmt != null) {
-					stmt.close();
-				}
-			}catch(SQLException e) {
-				e.printStackTrace();
-			}
+			System.out.println("Error, funcion loginUser");
 		}
 		return false;
 	}
 	public static boolean insertUser(String name, String pass, String mail) throws SQLException {
 		Connection con = null;
 		con = ConnectionDB.getConnection();
-		PreparedStatement ps = null;
-		Statement stmt = null;
-		try {
-			stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from users where nick = '"+name+"'");
+		String consulta = "insert into \"PUBLIC\".\"USERS\" (\"NICK\",\"PASS\",\"EMAIL\")"+"VALUES(?,?,?);";
+		try (Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from users where nick = '"+name+"'"); 
+			PreparedStatement ps = con.prepareStatement(consulta)){
 			if(!rs.next()) {
-				String consulta = "insert into \"PUBLIC\".\"USERS\" (\"NICK\",\"PASS\",\"EMAIL\")"+"VALUES(?,?,?);";
-				ps = con.prepareStatement(consulta);
 				ps.setString(1,name);
 				ps.setString(2,pass);
 				ps.setString(3,mail);
@@ -59,23 +45,7 @@ public class LoginRegistCase {
 				}
 			}
 		}catch(SQLException e) {
-			System.out.println("Error en LoginRegistCase");
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				if(ps != null) {
-					ps.close();
-				}
-				if(con != null) {
-					con.close();
-				}
-				if(stmt != null) {
-					stmt.close();
-				}
-			}catch(SQLException e) {
-				e.printStackTrace();
-			}
+			System.out.println("Error en insertUser");
 		}
 		return false;
 	}
@@ -91,7 +61,7 @@ public class LoginRegistCase {
 				return true;
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println("Error, funcion existUser");
 		}
 		finally {
 			try {
@@ -113,16 +83,14 @@ public class LoginRegistCase {
 	public static boolean insertVenta(String nick,String payment,String quantity,String texto,String[] producto) {
 		String productos = getProducto(producto);
 		String precio = getPrecio(producto,Integer.parseInt(quantity));
-		Connection con = null;
-		con = ConnectionDB.getConnection();
-		PreparedStatement ps = null;
-		Statement stmt = null;
-		try {
-			stmt = con.createStatement();
-			String consulta = "INSERT INTO \"PUBLIC\".\"VENTAS\"\r\n" + 
-					"( \"NICK\", \"PRODUCTS\", \"PAYMENT\", \"QUANTITY\", \"AMOUNT\", \"COMMENTS\" )\r\n" + 
-					"VALUES (?,?,?,?,?,?)";
-			ps = con.prepareStatement(consulta);
+		String consulta = "INSERT INTO \"PUBLIC\".\"VENTAS\"\r\n" + 
+				"( \"NICK\", \"PRODUCTS\", \"PAYMENT\", \"QUANTITY\", \"AMOUNT\", \"COMMENTS\" )\r\n" + 
+				"VALUES (?,?,?,?,?,?)";
+		try (Connection con = ConnectionDB.getConnection();
+			Statement stmt = con.createStatement();
+			PreparedStatement ps = con.prepareStatement(consulta)
+		){
+			
 			ps.setString(1,nick);
 			ps.setString(2,productos);
 			ps.setString(3,payment);
@@ -134,23 +102,7 @@ public class LoginRegistCase {
 				return true;
 			}
 		}catch(SQLException e) {
-			System.out.println("Error en LoginRegistCase");
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				if(ps != null) {
-					ps.close();
-				}
-				if(con != null) {
-					con.close();
-				}
-				if(stmt != null) {
-					stmt.close();
-				}
-			}catch(SQLException e) {
-				e.printStackTrace();
-			}
+			System.out.println("Error en insertVenta");
 		}
 		return false;	
 	}

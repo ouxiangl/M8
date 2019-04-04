@@ -17,7 +17,6 @@ import javax.servlet.http.HttpSession;
  */
 @WebServlet("/login")
 public class login extends HttpServlet {
-	public static HttpSession sesion = null;
 	private static final long serialVersionUID = 1L;
        
     /**
@@ -34,7 +33,7 @@ public class login extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		sesion = request.getSession();
+		HttpSession sesion = request.getSession();
 		String user = request.getParameter("user");
 		String pass = request.getParameter("password");
 		if(LoginRegistCase.loginUser(user,pass)) {
