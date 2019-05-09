@@ -1,39 +1,46 @@
-package entrega1;
+package entrega;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
+import java.util.logging.Logger;
 
 public class LoginRegistCase {
+	private LoginRegistCase() {
+	    throw new IllegalStateException("Utility class");
+	  }
 	public static boolean loginUser(String name, String pass) {
+		Properties prop = Proper.getProp();
 		
-		
-		
-		try (
-				Connection con = ConnectionDB.getConnection();
-				Statement stmt = con.createStatement();
-				ResultSet rs = stmt.executeQuery("select * from users where nick = '"+name+"' AND pass = '"+pass+"'");
-				PreparedStatement ps = null;
-			){
-			
-			
+		String select = "select * from "+prop.getProperty("bbdd.tabla.user")+" where nick = '"+name+"' AND pass = '"+pass+"'";
+		try(
+			Connection con= ConnectionDB.getConnection();
+			PreparedStatement preparedStatement =  con.prepareStatement(select);
+			ResultSet rs = preparedStatement.executeQuery(select);
+		){
+			//No pasa por aqui...!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			Logger.getLogger("rs: "+rs.toString());
 			if(rs.next()) {
 				return true;
 			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			System.out.println("Error, funcion loginUser");
+		} catch (Exception e) {
+			Logger.getLogger("Error, funcion loginUser");
 		}
+		Logger.getLogger(select);
+		Logger.getLogger("No existe usuario");
 		return false;
 	}
 	public static boolean insertUser(String name, String pass, String mail) throws SQLException {
-		Connection con = null;
-		con = ConnectionDB.getConnection();
+		
 		String consulta = "insert into \"PUBLIC\".\"USERS\" (\"NICK\",\"PASS\",\"EMAIL\")"+"VALUES(?,?,?);";
-		try (Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from users where nick = '"+name+"'"); 
+		String select = "select * from users where nick = '"+name+"'";
+		try (
+			Connection con = ConnectionDB.getConnection();
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery(select); 
 			PreparedStatement ps = con.prepareStatement(consulta)){
 			if(!rs.next()) {
 				ps.setString(1,name);
@@ -45,44 +52,38 @@ public class LoginRegistCase {
 				}
 			}
 		}catch(SQLException e) {
-			System.out.println("Error en insertUser");
+			Logger.getLogger("Error en insertUser");
 		}
 		return false;
 	}
 	public static boolean existUser(String nombre) {
-		Connection con = null;
-		con = ConnectionDB.getConnection();
-		PreparedStatement ps = null;
-		Statement stmt = null;
-		try {
-			stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from users where nick = '"+nombre+"'");
+		String select = "select * from users where nick = '"+nombre+"'";
+		try (
+				Connection con = ConnectionDB.getConnection();
+				Statement stmt = con.createStatement();
+				PreparedStatement ps = null;
+				ResultSet rs = stmt.executeQuery(select);
+			){
 			if(rs.next()) {
 				return true;
 			}
 		} catch (SQLException e) {
-			System.out.println("Error, funcion existUser");
-		}
-		finally {
-			try {
-				if(ps != null) {
-					ps.close();
-				}
-				if(con != null) {
-					con.close();
-				}
-				if(stmt != null) {
-					stmt.close();
-				}
-			}catch(SQLException e) {
-				e.printStackTrace();
-			}
+			Logger.getLogger("Error, funcion existUser");
 		}
 		return false;
 	}
 	public static boolean insertVenta(String nick,String payment,String quantity,String texto,String[] producto) {
-		String productos = getProducto(producto);
-		String precio = getPrecio(producto,Integer.parseInt(quantity));
+		String productos = null;
+		String precio = null;
+		try{
+			productos = getProducto(producto);
+			precio = getPrecio(producto,Integer.parseInt(quantity));
+		}
+		catch(Exception e){
+			Logger.getLogger("Error, funcion insertVenta");
+			return false;
+		}
+		
 		String consulta = "INSERT INTO \"PUBLIC\".\"VENTAS\"\r\n" + 
 				"( \"NICK\", \"PRODUCTS\", \"PAYMENT\", \"QUANTITY\", \"AMOUNT\", \"COMMENTS\" )\r\n" + 
 				"VALUES (?,?,?,?,?,?)";
@@ -102,7 +103,7 @@ public class LoginRegistCase {
 				return true;
 			}
 		}catch(SQLException e) {
-			System.out.println("Error en insertVenta");
+			Logger.getLogger("Error en insertVenta");
 		}
 		return false;	
 	}
@@ -124,7 +125,6 @@ public class LoginRegistCase {
 			for(int ii = 0; ii < listaPrecio.length; ii++) {
 				if(producto[i].equals(listaPrecio[ii][0]) && isNumeric(listaPrecio[ii][1])) {
 					precio+=num*Integer.parseInt(listaPrecio[ii][1]);
-					ii = listaPrecio.length;
 				}
 			}
 		}
